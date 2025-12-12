@@ -25,53 +25,13 @@ namespace MiniPlayer {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("https://www.pandora.com/")]
-        public string CurrentUri {
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string StationSettings {
             get {
-                return ((string)(this["CurrentUri"]));
+                return ((string)(this["StationSettings"]));
             }
             set {
-                this["CurrentUri"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute(@"<?xml version=""1.0"" encoding=""utf-16""?>
-<ArrayOfString xmlns:xsd=""http://www.w3.org/2001/XMLSchema"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"">
-  <string>https://www.pandora.com/</string>
-  <string>https://music.amazon.com/</string>
-</ArrayOfString>")]
-        public global::System.Collections.Specialized.StringCollection Setting {
-            get {
-                return ((global::System.Collections.Specialized.StringCollection)(this["Setting"]));
-            }
-            set {
-                this["Setting"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("0, 0")]
-        public global::System.Drawing.Point Location {
-            get {
-                return ((global::System.Drawing.Point)(this["Location"]));
-            }
-            set {
-                this["Location"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("148, 100")]
-        public global::System.Drawing.Size Size {
-            get {
-                return ((global::System.Drawing.Size)(this["Size"]));
-            }
-            set {
-                this["Size"] = value;
+                this["StationSettings"] = value;
             }
         }
     }

@@ -1,7 +1,12 @@
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.WinForms;
+using System.Diagnostics;
 using System.Net.Http;
+using System.Net.NetworkInformation;
 using System.Runtime.InteropServices;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using static System.Windows.Forms.AxHost;
 
 namespace MiniPlayer
 {
@@ -17,8 +22,87 @@ namespace MiniPlayer
         Left,
         TopLeft,
     }
+
+
+
+
     public partial class MiniPlayer : Form
     {
+
+        class Station
+        {
+            public string uri { get; set; }
+            public Point location { get; set; }
+            public Size size { get; set; }
+
+            public Station(string uri, Point location, Size size)
+            {
+                this.uri = uri;
+                this.location = location;
+                this.size = size;
+            }
+        };
+
+
+        class StationSettings
+        {
+            public List<Station> stations { get;  set; } = new();
+            public int current_station { get;  set; }
+            public void Add(Station s)
+            {
+                stations.Add(s);
+            }
+
+            [JsonIgnore]
+            public Station Current
+            {
+                get
+                {
+                    return stations[current_station];
+                }
+                set
+                {
+                    stations[current_station] = value;
+                }
+            }
+
+            public Station this[int index]
+            {
+                get { return stations[index]; }
+            }
+            public Dictionary<string, int> GetStationIndices()
+            {
+                Dictionary<string, int> s = new Dictionary<string, int>();
+                for (int i = 0; i < stations.Count; i++)
+                {
+                    s[stations[i].uri] = i;
+                }
+                return s;
+            }
+            [JsonIgnore]
+            public Station NextStation
+            {
+                get
+                {
+                    current_station = (current_station + 1) % stations.Count;
+                    return stations[current_station];
+                }
+            }
+            [JsonIgnore]
+            public Station PrevStation
+            {
+                get
+                {
+                    current_station = (current_station + stations.Count - 1) % stations.Count;
+                    return stations[current_station];
+                }
+            }
+        }
+
+
+        StationSettings stationSettings;
+
+
         private IntPtr CreateThemedIconHandle()
         {
             // 64x64 is a good size for high-DPI scaling
@@ -53,8 +137,13 @@ namespace MiniPlayer
         private Size resizeStart;
         public MiniPlayer()
         {
-            
 
+            stationSettings = new();
+
+            stationSettings.Add(new Station("https://www.pandora.com/", new Point(0, 0), new Size(148, 100)));
+            stationSettings.Add(new Station("https://music.amazon.com/", new Point(0, 0), new Size(148, 100)));
+
+            Trace.WriteLine(JsonSerializer.Serialize(stationSettings));
 
             InitializeComponent();
             currentIconHandle = CreateThemedIconHandle();
@@ -71,24 +160,64 @@ namespace MiniPlayer
 
         private void Form1_FormClosing(object? sender, FormClosingEventArgs e)
         {
-            Settings.Default.Location = this.Location;
-            Settings.Default.Size = this.Size;
+            stationSettings.Current.location = this.Location;
+            stationSettings.Current.size = this.Size;
+
+            Settings.Default.StationSettings = JsonSerializer.Serialize(stationSettings);
 
             Settings.Default.Save();
+        }
+        private bool IsOnScreen(Point location, Size size)
+        {
+            Rectangle rect = new Rectangle(location, size);
+            return Screen.AllScreens.Any(s => s.WorkingArea.IntersectsWith(rect));
         }
 
         private void Form1_Load(object? sender, EventArgs e)
         {
-          // Load the saved location and size
-          if (Settings.Default.Location != Point.Empty)
-          {
-              this.Location = Settings.Default.Location;
-          }
-          if (Settings.Default.Size != Size.Empty)
-          {
-              this.Size = Settings.Default.Size;
-          }
+            string json = Settings.Default.StationSettings;
 
+            if (!string.IsNullOrWhiteSpace(json))
+            {
+                try
+                {
+                    var state = JsonSerializer.Deserialize<StationSettings>(json);
+
+                    if (state != null)
+                    {
+                        stationSettings = state;
+
+                        if (IsOnScreen(state.Current.location, state.Current.size))
+                        {
+                            this.Location = state.Current.location;
+                            this.Size = state.Current.size;
+                        }
+                    }
+                }
+                catch
+                {
+                }
+            }
+            try
+            {
+                if (File.Exists("DefaultStations.json"))
+                {
+                    StationSettings defaults = JsonSerializer.Deserialize<StationSettings>(File.ReadAllText("DefaultStations.json"))!;
+                   
+                    var existing = stationSettings.GetStationIndices().Keys.ToHashSet();
+
+
+                    foreach ((string uri, int index) in defaults.GetStationIndices())
+                    {
+                        if (!existing.Contains(uri))
+                        {
+                            stationSettings.Add(defaults[index]);
+                        }
+                    }
+
+                }
+            }
+            catch { }
         }
 
         ActiveBorder ActiveBorder;
@@ -100,8 +229,8 @@ namespace MiniPlayer
             webView.Dock = DockStyle.Fill;
 
             this.Controls.Add(webView);
-            //webView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = false;
-            //webView.CoreWebView2.Settings.IsZoomControlEnabled = false;
+            webView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = false;
+            webView.CoreWebView2.Settings.IsZoomControlEnabled = false;
 
             var options = new CoreWebView2EnvironmentOptions
             {
@@ -164,7 +293,7 @@ namespace MiniPlayer
 
             webView.CoreWebView2.FaviconChanged += CoreWebView2_FaviconChanged;
 
-            webView.CoreWebView2.Navigate("https://www.pandora.com/");
+            webView.CoreWebView2.Navigate(stationSettings.Current.uri);
 
             MouseDown += PaddingPanel_MouseDown;
             MouseMove += PaddingPanel_MouseMove;
@@ -279,8 +408,8 @@ namespace MiniPlayer
                     case ActiveBorder.Top:
                         break;
                     case ActiveBorder.TopRight:
-                        this.Location = new Point(dragFormPoint.X , dragFormPoint.Y+dif.Y);
-                        this.Size = new Size(resizeStart.Width + dif.X, resizeStart.Height-dif.Y);
+                        this.Location = new Point(dragFormPoint.X, dragFormPoint.Y + dif.Y);
+                        this.Size = new Size(resizeStart.Width + dif.X, resizeStart.Height - dif.Y);
                         break;
                     case ActiveBorder.Right:
                         this.Size = new Size(resizeStart.Width + dif.X, resizeStart.Height);
@@ -289,18 +418,18 @@ namespace MiniPlayer
                         this.Size = new Size(resizeStart.Width + dif.X, resizeStart.Height + dif.Y);
                         break;
                     case ActiveBorder.Bottom:
-                        this.Size = new Size(resizeStart.Width, resizeStart.Height+dif.Y);
+                        this.Size = new Size(resizeStart.Width, resizeStart.Height + dif.Y);
                         break;
                     case ActiveBorder.BottomLeft:
                         this.Location = new Point(dragFormPoint.X + dif.X, dragFormPoint.Y);
                         this.Size = new Size(resizeStart.Width - dif.X, resizeStart.Height + dif.Y);
                         break;
                     case ActiveBorder.Left:
-                        this.Location = new Point(dragFormPoint.X+dif.X, dragFormPoint.Y);
+                        this.Location = new Point(dragFormPoint.X + dif.X, dragFormPoint.Y);
                         this.Size = new Size(resizeStart.Width - dif.X, resizeStart.Height);
                         break;
                     case ActiveBorder.TopLeft:
-                        this.Location = new Point(dragFormPoint.X+dif.X, dragFormPoint.Y + dif.Y);
+                        this.Location = new Point(dragFormPoint.X + dif.X, dragFormPoint.Y + dif.Y);
                         this.Size = new Size(resizeStart.Width - dif.X, resizeStart.Height - dif.Y);
                         break;
                 }
@@ -330,7 +459,7 @@ namespace MiniPlayer
                 var stream = await httpClient.GetStreamAsync(uri);
                 using (var bitmap = new Bitmap(stream))
                 {
-                  
+
                     IntPtr hIcon = bitmap.GetHicon();
                     using (var tempIcon = Icon.FromHandle(hIcon))
                     {

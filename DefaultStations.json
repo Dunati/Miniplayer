@@ -1,0 +1,29 @@
+{
+  "stations": [
+    {
+      "uri": "https://www.pandora.com/",
+      "location": {
+        "IsEmpty": true,
+        "X": 0,
+        "Y": 0
+      },
+      "size": {
+        "Width": 148,
+        "Height": 100
+      }
+    },
+    {
+      "uri": "https://music.amazon.com/",
+      "location": {
+        "IsEmpty": true,
+        "X": 0,
+        "Y": 0
+      },
+      "size": {
+        "Width": 148,
+        "Height": 100
+      }
+    }
+  ],
+  "current_station": 0
+}

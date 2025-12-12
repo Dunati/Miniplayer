@@ -39,6 +39,9 @@
 	  </Compile>
 	</ItemGroup>
 	<ItemGroup>
+	  <None Update="DefaultStations.json">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
 	  <None Update="Properties.settings">
 	    <Generator>SettingsSingleFileGenerator</Generator>
 	    <LastGenOutput>Properties.Designer.cs</LastGenOutput>
