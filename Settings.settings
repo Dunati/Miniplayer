@@ -1,0 +1,22 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="MiniPlayer" GeneratedClassName="Properties">
+  <Profiles />
+  <Settings>
+    <Setting Name="CurrentUri" Type="System.String" Scope="User">
+      <Value Profile="(Default)">https://www.pandora.com/</Value>
+    </Setting>
+    <Setting Name="Setting" Type="System.Collections.Specialized.StringCollection" Scope="User">
+      <Value Profile="(Default)">&lt;?xml version="1.0" encoding="utf-16"?&gt;
+&lt;ArrayOfString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"&gt;
+  &lt;string&gt;https://www.pandora.com/&lt;/string&gt;
+  &lt;string&gt;https://music.amazon.com/&lt;/string&gt;
+&lt;/ArrayOfString&gt;</Value>
+    </Setting>
+    <Setting Name="Location" Type="System.Drawing.Point" Scope="User">
+      <Value Profile="(Default)">0, 0</Value>
+    </Setting>
+    <Setting Name="Size" Type="System.Drawing.Size" Scope="User">
+      <Value Profile="(Default)">148, 100</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>
