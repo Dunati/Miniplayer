@@ -1,12 +1,10 @@
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.WinForms;
-using System.Diagnostics;
-using System.Net.Http;
-using System.Net.NetworkInformation;
-using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using static System.Windows.Forms.AxHost;
+using System.Windows.Forms;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
 
 namespace MiniPlayer
 {
@@ -46,8 +44,8 @@ namespace MiniPlayer
 
         class StationSettings
         {
-            public List<Station> stations { get;  set; } = new();
-            public int current_station { get;  set; }
+            public List<Station> stations { get; set; } = new();
+            public int current_station { get; set; }
             public void Add(Station s)
             {
                 stations.Add(s);
@@ -101,30 +99,6 @@ namespace MiniPlayer
 
 
         StationSettings stationSettings;
-
-
-        private IntPtr CreateThemedIconHandle()
-        {
-            // 64x64 is a good size for high-DPI scaling
-            using (var bmp = new Bitmap(64, 64))
-            using (var g = Graphics.FromImage(bmp))
-            using (var font = new Font("Segoe MDL2 Assets", 40, FontStyle.Regular))
-            {
-                // Settings for smooth rendering
-                g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
-
-                // \uE7F6 is the standard "Headset/Audio" icon in Windows
-                // We use 'Black' here, but you could use SystemBrushes.WindowText for theme awareness
-                g.DrawString("\uE7F6", font, Brushes.Black, new PointF(4, 8));
-
-                return bmp.GetHicon();
-            }
-        }
-
-
-        [DllImport("user32.dll", CharSet = CharSet.Auto)]
-        extern static bool DestroyIcon(IntPtr handle);
-        private IntPtr currentIconHandle = IntPtr.Zero; // Track the handle to destroy it later
         private readonly HttpClient httpClient = new HttpClient();
 
 
@@ -137,27 +111,119 @@ namespace MiniPlayer
         private Size resizeStart;
         public MiniPlayer()
         {
+            _proc = HookCallback;
+            _hookID = SetHook(_proc);
 
             stationSettings = new();
 
-            stationSettings.Add(new Station("https://www.pandora.com/", new Point(0, 0), new Size(148, 100)));
-            stationSettings.Add(new Station("https://music.amazon.com/", new Point(0, 0), new Size(148, 100)));
-
-            Trace.WriteLine(JsonSerializer.Serialize(stationSettings));
-
             InitializeComponent();
-            currentIconHandle = CreateThemedIconHandle();
             this.ResizeRedraw = true;
             webView = new WebView2();
             InitializeWebView();
 
             Padding = new Padding(10);
 
+            webView.Focus();
+
+
             // Load saved settings
             this.Load += Form1_Load;
             this.FormClosing += Form1_FormClosing;
         }
 
+        [DllImport("kernel32.dll")]
+        private static extern IntPtr GetModuleHandle(string lpModuleName);
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr SetWindowsHookEx(int idHook, LowLevelKeyboardProc lpfn, IntPtr hMod, uint dwThreadId);
+
+        [DllImport("user32.dll")]
+        private static extern bool UnhookWindowsHookEx(IntPtr hhk);
+        [DllImport("user32.dll")]
+        private static extern short GetKeyState(int nVirtKey);
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr CallNextHookEx(IntPtr hhk, int nCode, IntPtr wParam, IntPtr lParam);
+
+        private delegate IntPtr LowLevelKeyboardProc(int nCode, IntPtr wParam, IntPtr lParam);
+        private LowLevelKeyboardProc _proc;
+        private IntPtr _hookID = IntPtr.Zero;
+
+
+        private const int WH_KEYBOARD_LL = 13;
+        private const int WM_KEYDOWN = 0x0100;
+        private const int VK_CONTROL = 0x11;
+
+        private IntPtr SetHook(LowLevelKeyboardProc proc)
+        {
+            using (var cur = Process.GetCurrentProcess())
+            using (var curAssembly = cur.MainModule)
+            {
+                return SetWindowsHookEx(WH_KEYBOARD_LL, proc, GetModuleHandle(curAssembly.ModuleName), 0);
+            }
+        }
+
+        private void MiniPlayer_KeyDown(object? sender, KeyEventArgs e)
+        {
+            if (webView.CoreWebView2 != null)
+            {
+                if (e.KeyCode == Keys.MediaPlayPause)
+                {
+                    webView.CoreWebView2.ExecuteScriptAsync("document.dispatchEvent(new KeyboardEvent('keydown', {key: 'MediaPlayPause'}));");
+                }
+                else if (e.KeyCode == Keys.MediaNextTrack)
+                {
+                    webView.CoreWebView2.ExecuteScriptAsync("document.dispatchEvent(new KeyboardEvent('keydown', {key: 'MediaNextTrack'}));");
+                }
+                else if (e.KeyCode == Keys.MediaPreviousTrack)
+                {
+                    webView.CoreWebView2.ExecuteScriptAsync("document.dispatchEvent(new KeyboardEvent('keydown', {key: 'MediaPreviousTrack'}));");
+                }
+            }
+        }
+
+        private IntPtr HookCallback(int nCode, IntPtr wParam, IntPtr lParam)
+        {
+            if (nCode >= 0 && wParam == (IntPtr)WM_KEYDOWN)
+            {
+                int vkCode = Marshal.ReadInt32(lParam);
+                bool isCtrlDown = (GetKeyState(VK_CONTROL) & 0x8000) != 0;
+                if (vkCode == (int)Keys.MediaPlayPause)
+                {
+                    if (isCtrlDown)
+                    {
+                        webView.Reload();
+                    }
+                    else
+                    {
+                        webView.CoreWebView2.ExecuteScriptAsync("clickButton('pause_button', 'play_button');");
+                    }
+                }
+                else if (vkCode == (int)Keys.MediaNextTrack)
+                {
+                    if (isCtrlDown)
+                    {
+                        webView.CoreWebView2.ExecuteScriptAsync("clickButton('thumbs_up_button');");
+                    }
+                    else
+                    {
+                        webView.CoreWebView2.ExecuteScriptAsync("clickButton('skip_button');");
+                    }
+                }
+                else if (vkCode == (int)Keys.MediaPreviousTrack)
+                {
+                    if (isCtrlDown)
+                    {
+                        webView.CoreWebView2.ExecuteScriptAsync("clickButton('thumbs_down_button');");
+                    }
+                    else
+                    {
+                        webView.CoreWebView2.ExecuteScriptAsync("clickButton('replay_button');");
+                    }
+                }
+            }
+            return CallNextHookEx(_hookID, nCode, wParam, lParam);
+        }
         private void Form1_FormClosing(object? sender, FormClosingEventArgs e)
         {
             stationSettings.Current.location = this.Location;
@@ -166,6 +232,7 @@ namespace MiniPlayer
             Settings.Default.StationSettings = JsonSerializer.Serialize(stationSettings);
 
             Settings.Default.Save();
+            UnhookWindowsHookEx(_hookID);
         }
         private bool IsOnScreen(Point location, Size size)
         {
@@ -203,7 +270,7 @@ namespace MiniPlayer
                 if (File.Exists("DefaultStations.json"))
                 {
                     StationSettings defaults = JsonSerializer.Deserialize<StationSettings>(File.ReadAllText("DefaultStations.json"))!;
-                   
+
                     var existing = stationSettings.GetStationIndices().Keys.ToHashSet();
 
 
@@ -229,8 +296,6 @@ namespace MiniPlayer
             webView.Dock = DockStyle.Fill;
 
             this.Controls.Add(webView);
-            webView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = false;
-            webView.CoreWebView2.Settings.IsZoomControlEnabled = false;
 
             var options = new CoreWebView2EnvironmentOptions
             {
@@ -242,7 +307,21 @@ namespace MiniPlayer
             await webView.EnsureCoreWebView2Async(env);
 
             // This script defines the style, then keeps trying to add it until it succeeds.
+
             string robustHideScript = @"
+        function clickButton(dataQa, dataQa2) {
+            var button = document.querySelector('[data-qa=""' + dataQa + '""]');
+            if (button) {
+                button.click(); // Simulate a click on the button
+            } else if (dataQa2 !== undefined) {
+                button = document.querySelector('[data-qa=""' + dataQa2 + '""]');
+                if (button) {
+                    button.click(); // Simulate a click on the button
+                } else {
+                    console.error(dataQa+' not found.');
+                }
+            }
+        }
     (function() {
         const css = `
             /* 1. Hide the scrollbar visual parts (Chromium/WebView2) */
@@ -288,8 +367,8 @@ namespace MiniPlayer
             }
 
 
-
-            await webView.EnsureCoreWebView2Async(env);
+            webView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = false;
+            webView.CoreWebView2.Settings.IsZoomControlEnabled = false;
 
             webView.CoreWebView2.FaviconChanged += CoreWebView2_FaviconChanged;
 
@@ -302,14 +381,38 @@ namespace MiniPlayer
 
         private void Form1_MouseDoubleClick(object sender, MouseEventArgs e)
         {
-            // Toggle between maximized and normal state
-            if (this.WindowState == FormWindowState.Maximized)
+            if (this.ActiveBorder == ActiveBorder.Top)
             {
-                this.WindowState = FormWindowState.Normal;
+                if (this.WindowState == FormWindowState.Maximized)
+                {
+                    this.WindowState = FormWindowState.Normal;
+                }
+                else
+                {
+                    this.WindowState = FormWindowState.Maximized;
+                }
             }
-            else
+            else if (ActiveBorder == ActiveBorder.Right)
             {
-                this.WindowState = FormWindowState.Maximized;
+                stationSettings.Current.location = this.Location;
+                stationSettings.Current.size = this.Size;
+
+                var station = stationSettings.NextStation;
+                webView.CoreWebView2.Navigate(station.uri);
+
+                this.Size = station.size;
+                this.Location = station.location;
+            }
+            else if (ActiveBorder == ActiveBorder.Left)
+            {
+                stationSettings.Current.location = this.Location;
+                stationSettings.Current.size = this.Size;
+
+                var station = stationSettings.PrevStation;
+                webView.CoreWebView2.Navigate(station.uri);
+
+                this.Size = station.size;
+                this.Location = station.location;
             }
         }
 
@@ -475,10 +578,6 @@ namespace MiniPlayer
 
         protected override void OnFormClosed(FormClosedEventArgs e)
         {
-            if (currentIconHandle != IntPtr.Zero)
-            {
-                DestroyIcon(currentIconHandle);
-            }
             base.OnFormClosed(e);
         }
     }
