@@ -72,19 +72,22 @@ namespace MiniPlayer
         {
             Settings.Default.Location = this.Location;
             Settings.Default.Size = this.Size;
+
+            Settings.Default.Save();
         }
 
         private void Form1_Load(object? sender, EventArgs e)
         {
-            // Load the saved location and size
-            if (Settings.Default.Location != Point.Empty)
-            {
-                this.Location = Settings.Default.Location;
-            }
-            if (Settings.Default.Size != Size.Empty)
-            {
-                this.Size = Settings.Default.Size;
-            }
+          // Load the saved location and size
+          if (Settings.Default.Location != Point.Empty)
+          {
+              this.Location = Settings.Default.Location;
+          }
+          if (Settings.Default.Size != Size.Empty)
+          {
+              this.Size = Settings.Default.Size;
+          }
+
         }
 
         ActiveBorder ActiveBorder;
