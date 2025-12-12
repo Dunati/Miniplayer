@@ -32,14 +32,15 @@ namespace MiniPlayer
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MiniPlayer));
             SuspendLayout();
             // 
-            // Form1
+            // MiniPlayer
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(34, 64, 153);
             ClientSize = new Size(148, 100);
             FormBorderStyle = FormBorderStyle.None;
-            Name = "Form1";
+            Icon = (Icon)resources.GetObject("$this.Icon");
+            Name = "MiniPlayer";
             Padding = new Padding(5);
             Text = "MiniPlayer";
             MouseDoubleClick += Form1_MouseDoubleClick;
