@@ -58,6 +58,7 @@ namespace MiniPlayer
 
             InitializeComponent();
             currentIconHandle = CreateThemedIconHandle();
+            this.ResizeRedraw = true;
             webView = new WebView2();
             InitializeWebView();
 
@@ -104,7 +105,8 @@ namespace MiniPlayer
 
             var options = new CoreWebView2EnvironmentOptions
             {
-                AreBrowserExtensionsEnabled = true
+                AreBrowserExtensionsEnabled = true,
+                AdditionalBrowserArguments = "--autoplay-policy=no-user-gesture-required"
             };
 
             var env = await CoreWebView2Environment.CreateAsync(null, null, options);
