@@ -1,7 +1,7 @@
 ﻿using Microsoft.Web.WebView2.WinForms;
 namespace MiniPlayer
 {
-    partial class Form1
+    partial class MiniPlayer
     {
         /// <summary>
         ///  Required designer variable.
@@ -29,7 +29,7 @@ namespace MiniPlayer
         /// </summary>
         private void InitializeComponent()
         {
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MiniPlayer));
             SuspendLayout();
             // 
             // Form1
