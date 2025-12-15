@@ -1,0 +1,144 @@
+https://www.iconarchive.com/icons/iconshow/hardware/Licence.html
+https://www.iconarchive.com/show/hardware-icons-by-iconshow/Headphone-icon.html
+
+Licence Agreement
+
+ 
+
+This is an agreement between you as the acquirer and Jürgen Schatzke EDV Beratung & Programmierung (hereinafter referred to as "licenser"). For the Icon Collection the following terms of sale and licence apply:
+
+ 
+
+The legal right of use for the Icon Collection is only acknowledged if the terms of this licence are being accepted. The legal right of use is explicitly defined by the terms of this licence.
+
+ 
+
+ 
+
+    Copyright:
+
+ 
+
+The Icon Collection is copyrighted. Initiator is the licenser.
+
+ 
+
+    Licence Admission / Legal Rights Of Use:
+
+ 
+
+The icons and graphics may be used privately and commercially for software projects, within websites and other graphic designs. The graphics from the testing files may not be used commercially prior to the purchase of the according icon collection or bundle.
+
+ 
+
+Modification of graphics:
+
+The modification or edition of any graphic is allowed in the following cases and ways: combinations of graphics, colour saturation, brightness, transparency, colour change of the entire graphic, size and contrast.
+
+ 
+
+The graphics may be converted into other file formats.
+
+ 
+
+The acquirer is authorised to copy the Icon Collection only for backup.
+
+ 
+
+Apply within a network:
+
+It is allowed to use the Icon Collection within a network. The simultaneous multiplex use on various workstations within a network is allowed as well. It is not permitted though, to apply the Icon Collection within any other grouping of networks (WAN).
+
+ 
+
+The usage of graphics as a trademark or a business logo is not permitted.
+
+ 
+
+ 
+
+    Passing-on to third parties
+
+ 
+
+                        I.    By passing-on the licence of the Icon Collection, the legal rights of use together with the terms of the licence as indicated above are being passed over to the purchaser. The original acquirer looses the complete legal rights of use for the Icon Collection.
+
+ 
+
+                     II.    The acquirer is not entitled to sell or distribute copies of the Icon Collections or parts of the same, nor to allot sub-licences.
+
+ 
+
+                   III.    By passing on the Icon Collection on the whole or parts of it via an application (f.ex. browser or development system) for further use of components of Icon Collection inside third party products, the original acquirer looses all legal rights of use for the Icon Collection.
+
+ 
+
+    Warranty and liability 
+
+       
+
+The licenser warrants to the acquirers, in case they are consumers, for a time period of two years and to acquirers, who are enterprisers, for a time period of six months, from the day of delivery that the delivered Icon Collection is basically free from manufacturing defects.
+
+Any further warranty is definitely being excluded, particularly there is no warranty that the Icon Collection is appropriated for the purposes and by the current state of the art of the acquirer.
+
+The licenser is not liable for any damages occurring through modifications at the graphics.
+
+ 
+
+The licenser is not liable for damages (including damages from lost profit, interruption of operation or any other financial loss). This does not apply if the damage was caused by act of gross negligence or intent or consists of the missing of a quality that was guaranteed by the licenser.
+
+ 
+
+Liability for defect consequential damages is impossible, except they have been caused by the licenser by intent or gross negligence.
+
+ 
+
+However, the liability of the licenser is limited to the actual amount paid by the acquirer for the Icon Collection.
+
+ 
+
+Any compensation claims against the licenser are not transferable.
+
+ 
+
+ 
+
+    Applicable Right / Place of Jurisdiction
+
+ 
+
+For this terms of the licence and its interpretation the German legal right of the Federal Republic of Germany applies.
+
+ 
+
+Place of jurisdiction is Lampertheim, Germany, in case the acquirer is a merchant who has been entered as such in the commercial register.
+
+ 
+
+Should one provision in this contract be or become ineffective, the validity of the remaining conditions is retained. The contracting parties bind themselves to replace the invalid provision with a provision that conforms the economical purposes of the contract.
+
+ 
+
+ 
+
+ 
+
+Lampertheim, 28 September 2008
+
+ 
+
+Jürgen Schaetzke EDV Beratung & Programmierung
+
+ 
+
+Röntgenstraße 17
+
+68623 Lampertheim
+
+ 
+
+Tel.: 06206 / 157630
+
+Mail: Info@IconShow.de
+
+Shop: www.IconShow.de

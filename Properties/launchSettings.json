@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "MiniPlayer": {
+      "commandName": "Project",
+      "workingDirectory": "$(SolutionDir)"
+    }
+  }
+}

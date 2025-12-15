@@ -1,10 +1,11 @@
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.WinForms;
+using System.Diagnostics;
+using System.Reflection.Emit;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Windows.Forms;
-using System.Diagnostics;
-using System.Runtime.InteropServices;
 
 namespace MiniPlayer
 {
@@ -159,28 +160,64 @@ namespace MiniPlayer
             using (var cur = Process.GetCurrentProcess())
             using (var curAssembly = cur.MainModule)
             {
-                return SetWindowsHookEx(WH_KEYBOARD_LL, proc, GetModuleHandle(curAssembly.ModuleName), 0);
+                return SetWindowsHookEx(WH_KEYBOARD_LL, proc, GetModuleHandle(curAssembly!.ModuleName), 0);
             }
         }
 
-        private void MiniPlayer_KeyDown(object? sender, KeyEventArgs e)
+        public async Task ClickElementAsync(params string[] selectors)
         {
-            if (webView.CoreWebView2 != null)
+            string jsonSelectors = JsonSerializer.Serialize(selectors);
+
+            string jsCode = $@"
+        (function(selectorList) {{
+            function deepQuery(selector, root) {{
+                root = root || document;
+                var element = root.querySelector(selector);
+                if (element) return element;
+                var elements = root.querySelectorAll('*');
+                for (var i = 0; i < elements.length; i++) {{
+                    if (elements[i].shadowRoot) {{
+                        var found = deepQuery(selector, elements[i].shadowRoot);
+                        if (found) return found;
+                    }}
+                }}
+                return null;
+            }}
+
+            for (var i = 0; i < selectorList.length; i++) {{
+                var btn = deepQuery(selectorList[i]);
+                if (btn) {{
+                    btn.click();
+                    return true;
+                }}
+            }}
+            return false;
+        }})({jsonSelectors});
+    ";
+
+            await webView.ExecuteScriptAsync(jsCode);
+        }
+
+        public async Task HandleHotkey(string key)
+        {
+            switch (key)
             {
-                if (e.KeyCode == Keys.MediaPlayPause)
-                {
-                    webView.CoreWebView2.ExecuteScriptAsync("document.dispatchEvent(new KeyboardEvent('keydown', {key: 'MediaPlayPause'}));");
-                }
-                else if (e.KeyCode == Keys.MediaNextTrack)
-                {
-                    webView.CoreWebView2.ExecuteScriptAsync("document.dispatchEvent(new KeyboardEvent('keydown', {key: 'MediaNextTrack'}));");
-                }
-                else if (e.KeyCode == Keys.MediaPreviousTrack)
-                {
-                    webView.CoreWebView2.ExecuteScriptAsync("document.dispatchEvent(new KeyboardEvent('keydown', {key: 'MediaPreviousTrack'}));");
-                }
+            case "F1":
+                await ClickElementAsync(
+                    "[data-qa='thumbs_up_button']",
+                    "[aria-label='Like' i]"
+                );
+                break;
+            case "F2":
+                await ClickElementAsync(
+    "#contextMenuOption1",
+    "music-list-item[primary-text='Dislike']"
+);
+                break;
+
             }
         }
+
 
         private IntPtr HookCallback(int nCode, IntPtr wParam, IntPtr lParam)
         {
@@ -188,6 +225,11 @@ namespace MiniPlayer
             {
                 int vkCode = Marshal.ReadInt32(lParam);
                 bool isCtrlDown = (GetKeyState(VK_CONTROL) & 0x8000) != 0;
+                if (vkCode == 109)
+                {
+                    HandleHotkey("F2");
+                    Trace.WriteLine("sent");
+                }
                 if (vkCode == (int)Keys.MediaPlayPause)
                 {
                     if (isCtrlDown)
@@ -203,7 +245,7 @@ namespace MiniPlayer
                 {
                     if (isCtrlDown)
                     {
-                        webView.CoreWebView2.ExecuteScriptAsync("clickButton('thumbs_up_button');");
+                        webView.CoreWebView2.ExecuteScriptAsync(@"clickButton(['[data-qa=""thumbs_up_button""]', '[aria-label=""like""]']);");
                     }
                     else
                     {
@@ -309,19 +351,6 @@ namespace MiniPlayer
             // This script defines the style, then keeps trying to add it until it succeeds.
 
             string robustHideScript = @"
-        function clickButton(dataQa, dataQa2) {
-            var button = document.querySelector('[data-qa=""' + dataQa + '""]');
-            if (button) {
-                button.click(); // Simulate a click on the button
-            } else if (dataQa2 !== undefined) {
-                button = document.querySelector('[data-qa=""' + dataQa2 + '""]');
-                if (button) {
-                    button.click(); // Simulate a click on the button
-                } else {
-                    console.error(dataQa+' not found.');
-                }
-            }
-        }
     (function() {
         const css = `
             /* 1. Hide the scrollbar visual parts (Chromium/WebView2) */
@@ -358,7 +387,8 @@ namespace MiniPlayer
             await webView.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync(robustHideScript);
             try
             {
-                string extensionPath = @"C:\source\MiniPlayer\uBlock0.chromium";
+
+                string extensionPath = Path.GetFullPath(@".\uBlock0.chromium");
                 await webView.CoreWebView2.Profile.AddBrowserExtensionAsync(extensionPath);
             }
             catch (Exception ex)
@@ -506,35 +536,35 @@ namespace MiniPlayer
 
                 switch (ActiveBorder)
                 {
-                    case ActiveBorder.None:
-                        break;
-                    case ActiveBorder.Top:
-                        break;
-                    case ActiveBorder.TopRight:
-                        this.Location = new Point(dragFormPoint.X, dragFormPoint.Y + dif.Y);
-                        this.Size = new Size(resizeStart.Width + dif.X, resizeStart.Height - dif.Y);
-                        break;
-                    case ActiveBorder.Right:
-                        this.Size = new Size(resizeStart.Width + dif.X, resizeStart.Height);
-                        break;
-                    case ActiveBorder.BottomRight:
-                        this.Size = new Size(resizeStart.Width + dif.X, resizeStart.Height + dif.Y);
-                        break;
-                    case ActiveBorder.Bottom:
-                        this.Size = new Size(resizeStart.Width, resizeStart.Height + dif.Y);
-                        break;
-                    case ActiveBorder.BottomLeft:
-                        this.Location = new Point(dragFormPoint.X + dif.X, dragFormPoint.Y);
-                        this.Size = new Size(resizeStart.Width - dif.X, resizeStart.Height + dif.Y);
-                        break;
-                    case ActiveBorder.Left:
-                        this.Location = new Point(dragFormPoint.X + dif.X, dragFormPoint.Y);
-                        this.Size = new Size(resizeStart.Width - dif.X, resizeStart.Height);
-                        break;
-                    case ActiveBorder.TopLeft:
-                        this.Location = new Point(dragFormPoint.X + dif.X, dragFormPoint.Y + dif.Y);
-                        this.Size = new Size(resizeStart.Width - dif.X, resizeStart.Height - dif.Y);
-                        break;
+                case ActiveBorder.None:
+                    break;
+                case ActiveBorder.Top:
+                    break;
+                case ActiveBorder.TopRight:
+                    this.Location = new Point(dragFormPoint.X, dragFormPoint.Y + dif.Y);
+                    this.Size = new Size(resizeStart.Width + dif.X, resizeStart.Height - dif.Y);
+                    break;
+                case ActiveBorder.Right:
+                    this.Size = new Size(resizeStart.Width + dif.X, resizeStart.Height);
+                    break;
+                case ActiveBorder.BottomRight:
+                    this.Size = new Size(resizeStart.Width + dif.X, resizeStart.Height + dif.Y);
+                    break;
+                case ActiveBorder.Bottom:
+                    this.Size = new Size(resizeStart.Width, resizeStart.Height + dif.Y);
+                    break;
+                case ActiveBorder.BottomLeft:
+                    this.Location = new Point(dragFormPoint.X + dif.X, dragFormPoint.Y);
+                    this.Size = new Size(resizeStart.Width - dif.X, resizeStart.Height + dif.Y);
+                    break;
+                case ActiveBorder.Left:
+                    this.Location = new Point(dragFormPoint.X + dif.X, dragFormPoint.Y);
+                    this.Size = new Size(resizeStart.Width - dif.X, resizeStart.Height);
+                    break;
+                case ActiveBorder.TopLeft:
+                    this.Location = new Point(dragFormPoint.X + dif.X, dragFormPoint.Y + dif.Y);
+                    this.Size = new Size(resizeStart.Width - dif.X, resizeStart.Height - dif.Y);
+                    break;
                 }
             }
             else
