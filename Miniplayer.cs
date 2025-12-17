@@ -137,8 +137,8 @@ namespace MiniPlayer
 
         [DllImport("user32.dll")]
         private static extern IntPtr SetWindowsHookEx(int idHook, LowLevelKeyboardProc lpfn, IntPtr hMod, uint dwThreadId);
-
-        [DllImport("user32.dll")]
+        
+        [DllImport("user32.dll")] 
         private static extern bool UnhookWindowsHookEx(IntPtr hhk);
         [DllImport("user32.dll")]
         private static extern short GetKeyState(int nVirtKey);
