@@ -1,4 +1,5 @@
 using Microsoft.Web.WebView2.WinForms;
+using System.Text.Json;
 
 namespace MiniPlayer
 {
@@ -20,6 +21,12 @@ namespace MiniPlayer
 
         }
         public string BrowserArguments { get; protected set; } = "--autoplay-policy=no-user-gesture-required";
+
+
+        protected JsonSerializerOptions options = new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        };
 
     }
 

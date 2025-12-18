@@ -44,7 +44,7 @@ namespace MiniPlayer
             this.Load += Form1_Load;
             this.FormClosing += Form1_FormClosing;
 
-            commands = new AmazonCommands(webView);
+            commands = new PandoraCommands(webView);
         }
 
         [DllImport("kernel32.dll")]

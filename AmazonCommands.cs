@@ -52,11 +52,6 @@ namespace MiniPlayer
         {
         }
 
-        JsonSerializerOptions options = new JsonSerializerOptions
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-        };
-
         public override async Task AdjustStyle()
         {
             await base.AdjustStyle();
