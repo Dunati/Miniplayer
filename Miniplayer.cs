@@ -239,6 +239,7 @@ GetWebView(), "#contextMenuOption1",
             webView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = false;
             webView.CoreWebView2.Settings.IsZoomControlEnabled = false;
 
+            webView.NavigationCompleted += WebView_NavigationCompleted;
             webView.CoreWebView2.FaviconChanged += CoreWebView2_FaviconChanged;
 
             webView.CoreWebView2.Navigate(stationSettings.Current.uri);
@@ -246,6 +247,12 @@ GetWebView(), "#contextMenuOption1",
             MouseDown += PaddingPanel_MouseDown;
             MouseMove += PaddingPanel_MouseMove;
             MouseUp += PaddingPanel_MouseUp;
+
+        }
+
+        private async void WebView_NavigationCompleted(object? sender, CoreWebView2NavigationCompletedEventArgs e)
+        {
+            await commands.AdjustStyle();
         }
 
         private void Form1_MouseDoubleClick(object sender, MouseEventArgs e)

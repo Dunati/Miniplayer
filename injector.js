@@ -70,6 +70,23 @@
     `
     inject(hide_scrollbars)
 
+    function set_properties(cache_name, props) {
+        var el = window.miniplayer.cache[cache_name]
+        if (!el) return false
+
+        for (var key in props) {
+            if (key === 'style' && typeof props[key] === 'object') {
+                Object.assign(el.style, props[key])
+            } else {
+                el[key] = props[key]
+            }
+        }
+        return true
+    }
+
+    // ... existing exports ...
+    window.miniplayer.set_properties = set_properties
+
     window.miniplayer.find_element = find_element
     window.miniplayer.click_element = click_element
     window.miniplayer.inject = inject

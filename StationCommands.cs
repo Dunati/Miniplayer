@@ -15,7 +15,7 @@ namespace MiniPlayer
         public abstract void Like();
         public abstract void Dislike();
 
-        public  async void AdjustStyle()
+        public  virtual async Task AdjustStyle()
         {
 
         }

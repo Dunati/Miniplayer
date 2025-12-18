@@ -23,6 +23,10 @@ class InjectionFunctions
         return ParseElementState(result[1..^1]);
     }
 
+    public static async Task SetProperty(WebView2 webView, string cacheName, string props)
+    {
+        await webView.ExecuteScriptAsync($"window.miniplayer.set_properties('{cacheName}', {props})");
+    }
 
     public static async Task ClickElementAsync(WebView2 webView, string cacheName)
     {
