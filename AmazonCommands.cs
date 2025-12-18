@@ -9,7 +9,7 @@ namespace MiniPlayer
     {
         public AmazonCommands(WebView2 webView) : base(webView)
         {
-
+            Color = Color.FromArgb(25,25,25);
         }
         public override async void Dislike()
         {

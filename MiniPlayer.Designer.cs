@@ -34,19 +34,18 @@ namespace MiniPlayer
             // 
             // MiniPlayer
             // 
-            AutoScaleDimensions = new SizeF(8F, 20F);
+            AutoScaleDimensions = new SizeF(10F, 25F);
             AutoScaleMode = AutoScaleMode.Font;
-            BackColor = Color.FromArgb(34, 64, 153);
-            ClientSize = new Size(148, 100);
+            BackColor = Color.Black;
+            ClientSize = new Size(185, 125);
             FormBorderStyle = FormBorderStyle.None;
             Icon = (Icon)resources.GetObject("$this.Icon");
+            //Margin = new Padding(3,3,3,3);
             Name = "MiniPlayer";
-            Padding = new Padding(5);
+            Padding = new Padding(3,3,3,3);
             Text = "MiniPlayer";
             MouseDoubleClick += Form1_MouseDoubleClick;
             ResumeLayout(false);
-
-
         }
 
         #endregion

@@ -8,8 +8,6 @@ using System.Windows.Forms;
 
 namespace MiniPlayer
 {
-
-
     public partial class MiniPlayer : Form
     {
         StationSettings stationSettings;
@@ -34,8 +32,9 @@ namespace MiniPlayer
             this.ResizeRedraw = true;
             webView = new WebView2();
             InitializeWebView();
+            TopMost = true;
 
-            Padding = new Padding(10);
+            Padding = new Padding(5);
 
             webView.Focus();
 
@@ -493,5 +492,24 @@ GetWebView(), "#contextMenuOption1",
         {
             base.OnFormClosed(e);
         }
+
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            base.OnPaint(e);
+            int thickness = this.Padding.All;
+
+            Color darkTint = ControlPaint.Dark(commands.Color, 0.5f);
+            Color lightTint = ControlPaint.Light(commands.Color, 0.5f);
+
+            ControlPaint.DrawBorder(
+                e.Graphics,
+                ClientRectangle,
+                darkTint, thickness, ButtonBorderStyle.Solid,  
+                darkTint, thickness, ButtonBorderStyle.Solid,  
+                lightTint, thickness, ButtonBorderStyle.Solid, 
+                lightTint, thickness, ButtonBorderStyle.Solid  
+            );
+        }
+
     }
 }

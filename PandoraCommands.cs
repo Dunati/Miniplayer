@@ -9,7 +9,7 @@ namespace MiniPlayer
     {
         public PandoraCommands(WebView2 webView) : base(webView)
         {
-
+            Color = Color.FromArgb(34, 64, 153);
         }
         public override async void Dislike()
         {
@@ -35,6 +35,7 @@ namespace MiniPlayer
         {
             await InjectionFunctions.ClickElementAsync(webView, "[data-qa='replay_button']");
         }
+
 
 
         public override async Task AdjustStyle()

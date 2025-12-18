@@ -28,6 +28,8 @@ namespace MiniPlayer
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         };
 
+        public Color Color { get; set; }
+
     }
 
 
