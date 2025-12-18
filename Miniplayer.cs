@@ -87,6 +87,7 @@ namespace MiniPlayer
 
         public async Task HandleHotkey(string key)
         {
+            /*
             switch (key)
             {
             case "F1":
@@ -103,6 +104,7 @@ GetWebView(), "#contextMenuOption1",
                 break;
 
             }
+            */
         }
 
         StationCommands commands;
@@ -220,41 +222,8 @@ GetWebView(), "#contextMenuOption1",
             var env = await CoreWebView2Environment.CreateAsync(null, null, options);
             await webView.EnsureCoreWebView2Async(env);
 
-            string robustHideScript = @"
-    (function() {
-        const css = `
-            /* 1. Hide the scrollbar visual parts (Chromium/WebView2) */
-            ::-webkit-scrollbar { 
-                display: none !important; 
-                width: 0px !important; 
-                height: 0px !important; 
-            }
-            
-            /* 2. Hide visuals for standard compliance (Firefox/other) */
-            html, body { 
-                scrollbar-width: none !important; 
-                -ms-overflow-style: none !important; 
-                
-                /* 3. IMPORTANT: Ensure scrolling is ENABLED */
-                overflow: auto !important; 
-            }
-        `;
-
-        function inject() {
-            const target = document.head || document.documentElement;
-            if (target) {
-                const style = document.createElement('style');
-                style.innerHTML = css;
-                target.appendChild(style);
-            } else {
-                requestAnimationFrame(inject);
-            }
-        }
-        inject();
-    })();
-";
-
-            await webView.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync(robustHideScript);
+            string injected = await File.ReadAllTextAsync("injector.js");
+            await webView.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync(injected);
             try
             {
 

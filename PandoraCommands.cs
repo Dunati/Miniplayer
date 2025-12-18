@@ -26,7 +26,7 @@ namespace MiniPlayer
 
         public override async void Play()
         {
-            await InjectionFunctions.ClickElementAsync(webView, "[data-qa='play_button']", "[data-qa='pause_button']");
+          //  await InjectionFunctions.ClickElementAsync(webView, "[data-qa='play_button']", "[data-qa='pause_button']");
         }
 
         public override async void Previous()

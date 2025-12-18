@@ -14,6 +14,11 @@ namespace MiniPlayer
         public abstract void Previous();
         public abstract void Like();
         public abstract void Dislike();
+
+        public  async void AdjustStyle()
+        {
+
+        }
         public string BrowserArguments { get; protected set; } = "--autoplay-policy=no-user-gesture-required";
 
     }
