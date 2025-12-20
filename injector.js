@@ -1,42 +1,49 @@
 ﻿(function () {
     window.miniplayer = window.miniplayer || {}
-    window.miniplayer.cache = window.miniplayer.cache || {}
 
     function deepQuery(selector, root) {
-        root = root || document
-        var element = root.querySelector(selector)
-        if (element) return element
-        var elements = root.querySelectorAll('*')
-        for (var i = 0; i < elements.length; i++) {
-            if (elements[i].shadowRoot) {
-                var found = deepQuery(selector, elements[i].shadowRoot)
-                if (found) return found
+        root = root || document;
+        const selectors = Array.isArray(selector) ? selector : [selector];
+        let currentRoot = root;
+
+        for (let i = 0; i < selectors.length; i++) {
+            const selector = selectors[i];
+
+            function findDeep(sel, startNode) {
+                var element = startNode.querySelector(sel);
+                if (element) {
+                    return element;
+                }
+
+                var elements = startNode.querySelectorAll('*');
+                for (var j = 0; j < elements.length; j++) {
+                    if (elements[j].shadowRoot) {
+                        var found = findDeep(sel, elements[j].shadowRoot);
+                        if (found) {
+                            return found;
+                        }
+                    }
+                }
+                return null;
             }
+
+            currentRoot = findDeep(selector, currentRoot);
+
+            if (!currentRoot) return null;
         }
-        return null
+
+        return currentRoot;
     }
-
-
-    function find_element(selector, cache_name) {
-        var el = window.miniplayer.cache[cache_name]
-
+    function find_element(selector) {
+        var el = deepQuery(selector)
         if (el) {
-            if (el.isConnected) {
-                return 'FoundAndCached'
-            }
-            return 'Cached'
-        }
-
-        el = deepQuery(selector)
-        if (el) {
-            window.miniplayer.cache[cache_name] = el
-            return 'FoundAndCached'
+            return 'Found'
         }
         return 'NotFound'
     }
 
-    function click_element(cache_name) {
-        var el = window.miniplayer.cache[cache_name]
+    function click_element(selector) {
+        var el = deepQuery(selector)
         if (el) {
             el.click()
             return true
@@ -70,10 +77,9 @@
     `
     inject(hide_scrollbars)
 
-    function set_properties(cache_name, props) {
-        var el = window.miniplayer.cache[cache_name]
+    function set_properties(selector, props) {
+        var el = deepQuery(selector)
         if (!el) return false
-
         for (var key in props) {
             if (key === 'style' && typeof props[key] === 'object') {
                 Object.assign(el.style, props[key])

@@ -10,27 +10,28 @@ class InjectionFunctions
     {
         switch (state)
         {
-        case "FoundAndCached":
-            return CachedElementState.Cached | CachedElementState.Found;
-        case "Cached":
-            return CachedElementState.Cached;
+        case "Found":
+            return CachedElementState.Found;
         }
         return CachedElementState.None;
     }
-    public static async Task<CachedElementState> FindElement(WebView2 webView, string cacheName, string selector)
+    public static async Task<CachedElementState> FindElement(WebView2 webView, params string[] selector)
     {
-        string result = await webView.ExecuteScriptAsync($"window.miniplayer.find_element('{selector}', '{cacheName}')");
+        string jsonSelector = JsonSerializer.Serialize(selector);
+        string result = await webView.ExecuteScriptAsync($"window.miniplayer.find_element({jsonSelector})");
         return ParseElementState(result[1..^1]);
     }
 
-    public static async Task SetProperty(WebView2 webView, string cacheName, string props)
+    public static async Task SetProperty(WebView2 webView, string props, params string[] selector)
     {
-        await webView.ExecuteScriptAsync($"window.miniplayer.set_properties('{cacheName}', {props})");
+        string jsonSelector = JsonSerializer.Serialize(selector);
+        await webView.ExecuteScriptAsync($"window.miniplayer.set_properties({jsonSelector}, {props})");
     }
 
-    public static async Task ClickElementAsync(WebView2 webView, string cacheName)
+    public static async Task ClickElementAsync(WebView2 webView, params string[] selector)
     {
-        await webView.ExecuteScriptAsync($"window.miniplayer.click_element('{cacheName}')");
+        string jsonSelector = JsonSerializer.Serialize(selector);
+        await webView.ExecuteScriptAsync($"window.miniplayer.click_element({jsonSelector})");
     }
 }
 
@@ -38,6 +39,5 @@ class InjectionFunctions
 enum CachedElementState
 {
     None,
-    Found = (1 << 0),
-    Cached = (1 << 1),
+    Found = (1 << 0)
 }

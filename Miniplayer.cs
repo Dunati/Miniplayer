@@ -43,7 +43,6 @@ namespace MiniPlayer
             this.Load += Form1_Load;
             this.FormClosing += Form1_FormClosing;
 
-            commands = new PandoraCommands(webView);
         }
 
         [DllImport("kernel32.dll")]
@@ -106,7 +105,7 @@ GetWebView(), "#contextMenuOption1",
             */
         }
 
-        StationCommands commands;
+        StationCommands? commands;
 
 
         private IntPtr HookCallback(int nCode, IntPtr wParam, IntPtr lParam)
@@ -118,22 +117,22 @@ GetWebView(), "#contextMenuOption1",
                 switch (vkCode)
                 {
                 case Keys.MediaPlayPause:
-                    commands.Play();
+                    commands?.Play();
                     break;
                 case Keys.MediaNextTrack:
-                    commands.Next();
+                    commands?.Next();
                     break;
                 case Keys.MediaPreviousTrack:
-                    commands.Previous();
+                    commands?.Previous();
                     break;
                 case Keys.F22:
-                    commands.Dislike();
+                    commands?.Dislike();
                     break;
                 case Keys.F23:
                     webView.Reload();
                     break;
                 case Keys.F24:
-                    commands.Like();
+                    commands?.Like();
                     break;
                 }
             }
@@ -180,26 +179,21 @@ GetWebView(), "#contextMenuOption1",
                 {
                 }
             }
-            try
+            if (File.Exists("DefaultStations.json"))
             {
-                if (File.Exists("DefaultStations.json"))
+                StationSettings defaults = JsonSerializer.Deserialize<StationSettings>(File.ReadAllText("DefaultStations.json"))!;
+
+                var existing = stationSettings.GetStationIndices().Keys.ToHashSet();
+
+
+                foreach ((string uri, int index) in defaults.GetStationIndices())
                 {
-                    StationSettings defaults = JsonSerializer.Deserialize<StationSettings>(File.ReadAllText("DefaultStations.json"))!;
-
-                    var existing = stationSettings.GetStationIndices().Keys.ToHashSet();
-
-
-                    foreach ((string uri, int index) in defaults.GetStationIndices())
+                    if (!existing.Contains(uri))
                     {
-                        if (!existing.Contains(uri))
-                        {
-                            stationSettings.Add(defaults[index]);
-                        }
+                        stationSettings.Add(defaults[index]);
                     }
-
                 }
             }
-            catch { }
         }
 
         ActiveBorder ActiveBorder;
@@ -241,17 +235,28 @@ GetWebView(), "#contextMenuOption1",
             webView.NavigationCompleted += WebView_NavigationCompleted;
             webView.CoreWebView2.FaviconChanged += CoreWebView2_FaviconChanged;
 
-            webView.CoreWebView2.Navigate(stationSettings.Current.uri);
 
             MouseDown += PaddingPanel_MouseDown;
             MouseMove += PaddingPanel_MouseMove;
             MouseUp += PaddingPanel_MouseUp;
 
+            webView.CoreWebView2.OpenDevToolsWindow();
+
+            StationCommands.RegisterCommands();
+            var new_commands = StationCommands.Get(stationSettings.Current.uri, webView);
+            if (new_commands != null)
+            {
+                commands = new_commands;
+                webView.CoreWebView2.Navigate(stationSettings.Current.uri);
+                return;
+            }
+            NextStation();
+
         }
 
         private async void WebView_NavigationCompleted(object? sender, CoreWebView2NavigationCompletedEventArgs e)
         {
-            await commands.AdjustStyle();
+            await commands!.AdjustStyle();
         }
 
         private void Form1_MouseDoubleClick(object sender, MouseEventArgs e)
@@ -284,14 +289,25 @@ GetWebView(), "#contextMenuOption1",
 
         private void NextStation()
         {
+            string original = stationSettings.Current.uri;
             stationSettings.Current.location = this.Location;
             stationSettings.Current.size = this.Size;
+            Station station = stationSettings.Current;
+            do
+            {
+                station = stationSettings.NextStation;
+                var next_command = StationCommands.Get(station.uri, webView);
+                if (next_command != null)
+                {
+                    commands = next_command;
+                    webView.CoreWebView2.Navigate(station.uri);
 
-            var station = stationSettings.NextStation;
-            webView.CoreWebView2.Navigate(station.uri);
+                    this.Size = station.size;
+                    this.Location = station.location;
+                    break;
+                }
+            } while (station.uri != original);
 
-            this.Size = station.size;
-            this.Location = station.location;
         }
 
         private void ToggleMaximize()
@@ -498,16 +514,18 @@ GetWebView(), "#contextMenuOption1",
             base.OnPaint(e);
             int thickness = this.Padding.All;
 
-            Color darkTint = ControlPaint.Dark(commands.Color, 0.5f);
-            Color lightTint = ControlPaint.Light(commands.Color, 0.5f);
+            Color color = commands?.Color ?? Color.DarkGray;
+
+            Color darkTint = ControlPaint.Dark(color, 0.5f);
+            Color lightTint = ControlPaint.Light(color, 0.5f);
 
             ControlPaint.DrawBorder(
                 e.Graphics,
                 ClientRectangle,
-                darkTint, thickness, ButtonBorderStyle.Solid,  
-                darkTint, thickness, ButtonBorderStyle.Solid,  
-                lightTint, thickness, ButtonBorderStyle.Solid, 
-                lightTint, thickness, ButtonBorderStyle.Solid  
+                darkTint, thickness, ButtonBorderStyle.Solid,
+                darkTint, thickness, ButtonBorderStyle.Solid,
+                lightTint, thickness, ButtonBorderStyle.Solid,
+                lightTint, thickness, ButtonBorderStyle.Solid
             );
         }
 

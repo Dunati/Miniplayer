@@ -18,10 +18,6 @@ namespace MiniPlayer
             {
                 return stations[current_station];
             }
-            set
-            {
-                stations[current_station] = value;
-            }
         }
 
         public Station this[int index]
@@ -55,5 +51,6 @@ namespace MiniPlayer
                 return stations[current_station];
             }
         }
+        
     }
 }
