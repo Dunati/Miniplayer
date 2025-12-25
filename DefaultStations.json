@@ -23,6 +23,18 @@
         "Width": 148,
         "Height": 100
       }
+    },
+    {
+      "uri": "https://www.spotify.com/",
+      "location": {
+        "IsEmpty": true,
+        "X": 0,
+        "Y": 0
+      },
+      "size": {
+        "Width": 1920,
+        "Height": 1080
+      }
     }
   ],
   "current_station": 0

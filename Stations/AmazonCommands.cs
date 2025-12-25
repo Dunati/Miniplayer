@@ -80,18 +80,21 @@ namespace MiniPlayer
             {
                 await Task.Delay(500);
                 var element = await InjectionFunctions.FindElement(webView, @"#overlay", @":scope > div", @":scope > div:nth-child(3)", @"[aria-label=play]");
+                if ((element & CachedElementState.Found) == 0)
+                {
+                    element = await InjectionFunctions.FindElement(webView, @"#overlay", @":scope > div", @":scope > div:nth-child(3)", @"[aria-label=Pause]");
+                }
                 if ((element & CachedElementState.Found) != 0)
                 {
-                    await Task.Delay(500);
-                    float scale = 0.5f;
+                    float scale = Zoom;
                     var properties = new
                     {
                         style = new
                         {
                             transform = $"scale({scale})",
-                            padding = "0px",
+                            width = $"{100 / scale}%",
                             transformOrigin = "0 100%",
-                            width = $"{100 / scale}%"
+                            padding = "0px",
                         },
                     };
                     string jsonString = JsonSerializer.Serialize(properties, options);

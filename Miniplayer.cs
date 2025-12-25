@@ -28,10 +28,12 @@ namespace MiniPlayer
 
             stationSettings = new();
 
-            InitializeComponent();
+            InitializeComponent(); 
+            this.MouseWheel += MainForm_MouseWheel;
             this.ResizeRedraw = true;
             webView = new WebView2();
             InitializeWebView();
+            webView.WebMessageReceived += WebView_WebMessageReceived;
             TopMost = true;
 
             Padding = new Padding(5);
@@ -43,6 +45,41 @@ namespace MiniPlayer
             this.Load += Form1_Load;
             this.FormClosing += Form1_FormClosing;
 
+        }
+
+        private async void WebView_WebMessageReceived(object? sender, Microsoft.Web.WebView2.Core.CoreWebView2WebMessageReceivedEventArgs e)
+        {
+            if (commands == null)
+                return;
+
+            string rawMsg = e.TryGetWebMessageAsString();
+
+            if (double.TryParse(rawMsg, out double deltaY))
+            {
+                if (deltaY < 0)
+                {
+                    await commands.ZoomIn();
+                }
+                else
+                {
+                    await commands.ZoomOut();
+                }
+            }
+        }
+
+        private async void MainForm_MouseWheel(object? sender, MouseEventArgs e)
+        {
+            if ((Control.ModifierKeys & Keys.Control) == Keys.Control && commands != null)
+            {
+                if (e.Delta > 0)
+                {
+                    await commands.ZoomIn();
+                }
+                else
+                {
+                    await commands.ZoomOut();
+                }
+            }
         }
 
         [DllImport("kernel32.dll")]
@@ -140,14 +177,21 @@ GetWebView(), "#contextMenuOption1",
         }
         private void Form1_FormClosing(object? sender, FormClosingEventArgs e)
         {
+            SaveSettings();
+            UnhookWindowsHookEx(_hookID);
+        }
+
+        private void SaveSettings()
+        {
             stationSettings.Current.location = this.Location;
             stationSettings.Current.size = this.Size;
+            stationSettings.Current.zoom = commands?.Zoom ?? 1.0f;
 
             Settings.Default.StationSettings = JsonSerializer.Serialize(stationSettings);
 
             Settings.Default.Save();
-            UnhookWindowsHookEx(_hookID);
         }
+
         private bool IsOnScreen(Point location, Size size)
         {
             Rectangle rect = new Rectangle(location, size);
@@ -172,6 +216,11 @@ GetWebView(), "#contextMenuOption1",
                         {
                             this.Location = state.Current.location;
                             this.Size = state.Current.size;
+
+                            if (commands != null)
+                            {
+                                commands.Zoom = stationSettings.Current.zoom;
+                            }
                         }
                     }
                 }
@@ -228,7 +277,6 @@ GetWebView(), "#contextMenuOption1",
                 MessageBox.Show($"Failed to load extension: {ex.Message}");
             }
 
-
             webView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = false;
             webView.CoreWebView2.Settings.IsZoomControlEnabled = false;
 
@@ -240,7 +288,7 @@ GetWebView(), "#contextMenuOption1",
             MouseMove += PaddingPanel_MouseMove;
             MouseUp += PaddingPanel_MouseUp;
 
-            webView.CoreWebView2.OpenDevToolsWindow();
+            //webView.CoreWebView2.OpenDevToolsWindow();
 
             StationCommands.RegisterCommands();
             var new_commands = StationCommands.Get(stationSettings.Current.uri, webView);
@@ -267,31 +315,42 @@ GetWebView(), "#contextMenuOption1",
             }
             else if (ActiveBorder == ActiveBorder.Right)
             {
+
+                SaveSettings();
                 NextStation();
             }
             else if (ActiveBorder == ActiveBorder.Left)
             {
+                SaveSettings();
                 PreviousStation();
             }
         }
 
         private void PreviousStation()
         {
-            stationSettings.Current.location = this.Location;
-            stationSettings.Current.size = this.Size;
+            string original = stationSettings.Current.uri;
+            Station station = stationSettings.Current;
+            do
+            {
+                station = stationSettings.PrevStation;
+                var next_command = StationCommands.Get(station.uri, webView);
+                if (next_command != null)
+                {
+                    commands = next_command;
+                    webView.CoreWebView2.Navigate(station.uri);
 
-            var station = stationSettings.PrevStation;
-            webView.CoreWebView2.Navigate(station.uri);
+                    this.Size = station.size;
+                    this.Location = station.location;
+                    commands.Zoom = stationSettings.Current.zoom;
+                    break;
+                }
+            } while (station.uri != original);
 
-            this.Size = station.size;
-            this.Location = station.location;
         }
 
         private void NextStation()
         {
             string original = stationSettings.Current.uri;
-            stationSettings.Current.location = this.Location;
-            stationSettings.Current.size = this.Size;
             Station station = stationSettings.Current;
             do
             {
@@ -304,6 +363,7 @@ GetWebView(), "#contextMenuOption1",
 
                     this.Size = station.size;
                     this.Location = station.location;
+                    commands.Zoom = stationSettings.Current.zoom;
                     break;
                 }
             } while (station.uri != original);

@@ -97,7 +97,7 @@ namespace MiniPlayer
             var element = await InjectionFunctions.FindElement(webView, selector);
             if ((element & CachedElementState.Found) != 0)
             {
-                float scale = 0.75f;
+                float scale = Zoom;
                 var properties = new
                 {
                     style = new

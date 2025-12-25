@@ -7,6 +7,10 @@ namespace MiniPlayer
 {
     public abstract class StationCommands
     {
+        const float ZoomStep = 0.05f;
+        const float MinZoom = ZoomStep;
+        const float MaxZoom = 2;
+        private float _zoom = 1.0f;
         private static Dictionary<string, Func<WebView2, StationCommands>> commands = new();
         protected static void Register(string uri, Func<WebView2, StationCommands> create)
         {
@@ -46,10 +50,36 @@ namespace MiniPlayer
         };
 
         public Color Color { get; set; }
+        public float Zoom
+        {
+            get
+            {
+                return _zoom;
+            }
+            set
+            {
+                _zoom = Math.Clamp(MinZoom, value, MaxZoom);
+            }
+        }
 
         public abstract String Uri { get; }
 
-
+        public virtual async Task ZoomIn()
+        {
+            if (_zoom < 2.0f)
+            {
+                _zoom += 0.05f;
+                await AdjustStyle();
+            }
+        }
+        public virtual async Task ZoomOut()
+        {
+            if (_zoom > 0.05f)
+            {
+                _zoom -= 0.05f;
+                await AdjustStyle();
+            }
+        }
 
         protected async Task<bool> FindElement(string selector)
         {
@@ -68,8 +98,8 @@ namespace MiniPlayer
 
             foreach (var assembly in assemblies)
             {
-                var types = assembly.GetTypes() 
-                    .Where(t => t.IsSubclassOf(commandType)&& !t.IsInterface && !t.IsAbstract);
+                var types = assembly.GetTypes()
+                    .Where(t => t.IsSubclassOf(commandType) && !t.IsInterface && !t.IsAbstract);
 
                 foreach (var type in types)
                 {

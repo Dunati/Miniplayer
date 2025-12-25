@@ -96,4 +96,11 @@
     window.miniplayer.find_element = find_element
     window.miniplayer.click_element = click_element
     window.miniplayer.inject = inject
+
+    window.addEventListener('wheel', function (e) {
+        if (e.ctrlKey) {
+            e.preventDefault();
+            window.chrome.webview.postMessage(e.deltaY.toString());
+        }
+    }, { passive: false });
 })()
