@@ -1,7 +1,6 @@
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.WinForms;
 using System.Diagnostics;
-using System.Reflection.Emit;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Windows.Forms;
@@ -28,7 +27,7 @@ namespace MiniPlayer
 
             stationSettings = new();
 
-            InitializeComponent(); 
+            InitializeComponent();
             this.MouseWheel += MainForm_MouseWheel;
             this.ResizeRedraw = true;
             webView = new WebView2();
@@ -96,6 +95,9 @@ namespace MiniPlayer
         [DllImport("user32.dll")]
         private static extern IntPtr CallNextHookEx(IntPtr hhk, int nCode, IntPtr wParam, IntPtr lParam);
 
+        [DllImport("user32.dll")]
+        private static extern bool DestroyIcon(IntPtr hIcon);
+
         private delegate IntPtr LowLevelKeyboardProc(int nCode, IntPtr wParam, IntPtr lParam);
         private LowLevelKeyboardProc _proc;
         private IntPtr _hookID = IntPtr.Zero;
@@ -119,28 +121,6 @@ namespace MiniPlayer
             return webView;
         }
 
-
-        public async Task HandleHotkey(string key)
-        {
-            /*
-            switch (key)
-            {
-            case "F1":
-                await InjectionFunctions.ClickElementAsync(
-GetWebView(), "[data-qa='thumbs_up_button']",
-                    "[aria-label='Like']"
-                );
-                break;
-            case "F2":
-                await InjectionFunctions.ClickElementAsync(
-GetWebView(), "#contextMenuOption1",
-    "music-list-item[primary-text='Dislike']"
-);
-                break;
-
-            }
-            */
-        }
 
         StationCommands? commands;
 
@@ -170,6 +150,9 @@ GetWebView(), "#contextMenuOption1",
                     break;
                 case Keys.F24:
                     commands?.Like();
+                    break;
+                case Keys.F10:
+                    _ = DumpDomToFile();
                     break;
                 }
             }
@@ -216,11 +199,6 @@ GetWebView(), "#contextMenuOption1",
                         {
                             this.Location = state.Current.location;
                             this.Size = state.Current.size;
-
-                            if (commands != null)
-                            {
-                                commands.Zoom = stationSettings.Current.zoom;
-                            }
                         }
                     }
                 }
@@ -264,7 +242,7 @@ GetWebView(), "#contextMenuOption1",
             var env = await CoreWebView2Environment.CreateAsync(null, null, options);
             await webView.EnsureCoreWebView2Async(env);
 
-            string injected = await File.ReadAllTextAsync("injector.js");
+            string injected = ResourceLoader.ReadText("injector.js");
             await webView.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync(injected);
             try
             {
@@ -288,13 +266,16 @@ GetWebView(), "#contextMenuOption1",
             MouseMove += PaddingPanel_MouseMove;
             MouseUp += PaddingPanel_MouseUp;
 
-            //webView.CoreWebView2.OpenDevToolsWindow();
-
+            if (System.Diagnostics.Debugger.IsAttached)
+            {
+                webView.CoreWebView2.OpenDevToolsWindow();
+            }
             StationCommands.RegisterCommands();
             var new_commands = StationCommands.Get(stationSettings.Current.uri, webView);
             if (new_commands != null)
             {
                 commands = new_commands;
+                commands.Zoom = stationSettings.Current.zoom;
                 webView.CoreWebView2.Navigate(stationSettings.Current.uri);
                 return;
             }
@@ -305,6 +286,35 @@ GetWebView(), "#contextMenuOption1",
         private async void WebView_NavigationCompleted(object? sender, CoreWebView2NavigationCompletedEventArgs e)
         {
             await commands!.AdjustStyle();
+
+            if (Debugger.IsAttached)
+            {
+                await DumpDomToFile();
+            }
+        }
+
+        private async Task DumpDomToFile()
+        {
+            if (!Debugger.IsAttached || webView.CoreWebView2 == null)
+                return;
+
+            try
+            {
+                string html = await InjectionFunctions.DumpDom(webView);
+                Directory.CreateDirectory("dom_dumps");
+
+                string host = "page";
+                if (Uri.TryCreate(webView.Source?.ToString(), UriKind.Absolute, out var uri))
+                    host = uri.Host;
+
+                string path = Path.GetFullPath(Path.Combine("dom_dumps", $"{host}.html"));
+                await File.WriteAllTextAsync(path, html);
+                Debug.WriteLine($"DOM dumped to {path} ({html.Length} chars)");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"DOM dump failed: {ex.Message}");
+            }
         }
 
         private void Form1_MouseDoubleClick(object sender, MouseEventArgs e)
@@ -550,11 +560,18 @@ GetWebView(), "#contextMenuOption1",
                 var stream = await httpClient.GetStreamAsync(uri);
                 using (var bitmap = new Bitmap(stream))
                 {
-
                     IntPtr hIcon = bitmap.GetHicon();
-                    using (var tempIcon = Icon.FromHandle(hIcon))
+                    try
                     {
+                        // Icon.FromHandle doesn't own hIcon, so clone off an independent
+                        // copy and free both the HICON and the previous form icon ourselves.
+                        using var tempIcon = Icon.FromHandle(hIcon);
+                        Icon?.Dispose();
                         Icon = (Icon)tempIcon.Clone();
+                    }
+                    finally
+                    {
+                        DestroyIcon(hIcon);
                     }
                 }
             }

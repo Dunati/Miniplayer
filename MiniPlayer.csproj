@@ -62,9 +62,14 @@
 	  <None Update="DefaultStations.json">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </None>
-	  <None Update="injector.js">
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </None>
+	  <None Remove="injector.js" />
+	  <None Remove="amazon.js" />
+	  <EmbeddedResource Include="injector.js">
+	    <LogicalName>injector.js</LogicalName>
+	  </EmbeddedResource>
+	  <EmbeddedResource Include="amazon.js">
+	    <LogicalName>amazon.js</LogicalName>
+	  </EmbeddedResource>
 	  <None Update="Properties.settings">
 	    <Generator>SettingsSingleFileGenerator</Generator>
 	    <LastGenOutput>Properties.Designer.cs</LastGenOutput>
@@ -75,6 +80,6 @@
 	  </None>
 	</ItemGroup>
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
-	  <Exec Command="copy_files.cmd  &quot;$(TargetDir)&quot;  &quot;$(SolutionDir)exe&quot;" />
+	  <Exec Command="&quot;$(ProjectDir)copy_files.cmd&quot;  &quot;$(TargetDir)&quot;  &quot;$(SolutionDir)exe&quot;" WorkingDirectory="$(ProjectDir)" />
 	</Target>
 </Project>

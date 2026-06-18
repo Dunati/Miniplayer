@@ -71,10 +71,14 @@ namespace MiniPlayer
         public override async void Previous()
         {
         }
+        private static string? likeOverlayJs;
 
         public override async Task AdjustStyle()
         {
             await base.AdjustStyle();
+
+            likeOverlayJs ??= ResourceLoader.ReadText("amazon.js");
+            await webView.ExecuteScriptAsync(likeOverlayJs);
 
             for (int i = 0; i < 10; i++)
             {
@@ -135,9 +139,3 @@ namespace MiniPlayer
         }
     }
 }
-/*
-transform: 'scale({.5})',
-                            transformOrigin: '0 0',
-                            width: '{100 / .5}%',  // Optional: expands the container so contents fill the space
-                            height: '{100 / .5}%' // Optional: expands the container so contents fill the space
-*/

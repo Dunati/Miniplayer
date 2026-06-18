@@ -33,6 +33,19 @@ class InjectionFunctions
         string jsonSelector = JsonSerializer.Serialize(selector);
         await webView.ExecuteScriptAsync($"window.miniplayer.click_element({jsonSelector})");
     }
+
+    public static async Task InjectCss(WebView2 webView, string id, string css)
+    {
+        string jsId = JsonSerializer.Serialize(id);
+        string jsCss = JsonSerializer.Serialize(css);
+        await webView.ExecuteScriptAsync($"window.miniplayer.inject_css({jsId}, {jsCss})");
+    }
+
+    public static async Task<string> DumpDom(WebView2 webView)
+    {
+        string result = await webView.ExecuteScriptAsync("window.miniplayer.dump_dom()");
+        return JsonSerializer.Deserialize<string>(result) ?? "";
+    }
 }
 
 [Flags]

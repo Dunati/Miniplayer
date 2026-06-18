@@ -58,7 +58,7 @@ namespace MiniPlayer
             }
             set
             {
-                _zoom = Math.Clamp(MinZoom, value, MaxZoom);
+                _zoom = Math.Clamp(value, MinZoom, MaxZoom);
             }
         }
 

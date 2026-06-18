@@ -4,8 +4,6 @@ using System.Drawing;
 using System.Reflection;
 using System.Text.Json;
 using System.Windows.Forms;
-using static System.ComponentModel.Design.ObjectSelectorEditor;
-using static System.Windows.Forms.Design.AxImporter;
 
 namespace MiniPlayer
 {

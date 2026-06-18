@@ -1,7 +1,5 @@
 using Microsoft.Web.WebView2.WinForms;
 using System.Text.Json;
-using static System.ComponentModel.Design.ObjectSelectorEditor;
-using static System.Windows.Forms.Design.AxImporter;
 
 namespace MiniPlayer
 {
@@ -102,7 +100,7 @@ namespace MiniPlayer
                 {
                     style = new
                     {
-                        height = $"{3.0}rem",
+                        height = "3rem",
                         transform = $"scale({scale})",
                         padding = "0px",
                         transformOrigin = "0 100%",
