@@ -93,7 +93,19 @@
         prev = liked;
     }
 
-    function tick() { reposition(); sync(); }
+    function applyCrop() {
+        var transport = document.querySelector('#transport');
+        if (!transport || !transport.parentElement || !transport.parentElement.parentElement) return;
+        var player = transport.parentElement.parentElement;
+        var scale = window.__mpZoom || 1;
+        player.style.transform = 'scale(' + scale + ')';
+        player.style.width = (100 / scale) + '%';
+        player.style.transformOrigin = '0 100%';
+        player.style.padding = '0px';
+        transport.style.padding = '0px';
+    }
+
+    function tick() { applyCrop(); reposition(); sync(); }
 
     if (window.__mpLikeTimer) clearInterval(window.__mpLikeTimer);
     if (window.__mpResize) window.removeEventListener('resize', window.__mpResize);

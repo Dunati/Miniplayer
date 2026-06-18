@@ -239,7 +239,8 @@ namespace MiniPlayer
                 AdditionalBrowserArguments = "--autoplay-policy=no-user-gesture-required"
             };
 
-            var env = await CoreWebView2Environment.CreateAsync(null, null, options);
+            string userDataFolder = Path.GetFullPath(@".\data\WebView2");
+            var env = await CoreWebView2Environment.CreateAsync(null, userDataFolder, options);
             await webView.EnsureCoreWebView2Async(env);
 
             string injected = ResourceLoader.ReadText("injector.js");
@@ -247,7 +248,7 @@ namespace MiniPlayer
             try
             {
 
-                string extensionPath = Path.GetFullPath(@".\uBlock0.chromium");
+                string extensionPath = Path.GetFullPath(@".\data\uBlock0.chromium");
                 await webView.CoreWebView2.Profile.AddBrowserExtensionAsync(extensionPath);
             }
             catch (Exception ex)

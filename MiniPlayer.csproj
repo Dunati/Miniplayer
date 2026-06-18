@@ -8,6 +8,10 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <ApplicationIcon>icon\Iconshow-Hardware-Headphone.ico</ApplicationIcon>
     <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
+    <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>false</SelfContained>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <PublishReferencesDocumentationFiles>false</PublishReferencesDocumentationFiles>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -16,6 +20,8 @@
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
 	  <NoWarn>1701;1702;MSB3277</NoWarn>
+	  <DebugType>none</DebugType>
+	  <DebugSymbols>false</DebugSymbols>
   </PropertyGroup>
 
   <ItemGroup>
@@ -79,7 +85,10 @@
 	    <LastGenOutput>Settings.Designer.cs</LastGenOutput>
 	  </None>
 	</ItemGroup>
-	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
-	  <Exec Command="&quot;$(ProjectDir)copy_files.cmd&quot;  &quot;$(TargetDir)&quot;  &quot;$(SolutionDir)exe&quot;" WorkingDirectory="$(ProjectDir)" />
+	<Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(Configuration)' == 'Debug'">
+	  <Copy SourceFiles="$(ProjectDir)DefaultStations.json" DestinationFolder="$(ProjectDir)exe" SkipUnchangedFiles="true" />
+	</Target>
+	<Target Name="PostPublish" AfterTargets="Publish">
+	  <Exec Command="&quot;$(ProjectDir)copy_files.cmd&quot;  &quot;$(PublishDir)&quot;  &quot;$(ProjectDir)exe&quot;" WorkingDirectory="$(ProjectDir)" />
 	</Target>
 </Project>

@@ -77,6 +77,7 @@ namespace MiniPlayer
         {
             await base.AdjustStyle();
 
+            await webView.ExecuteScriptAsync($"window.__mpZoom = {Zoom.ToString(System.Globalization.CultureInfo.InvariantCulture)};");
             likeOverlayJs ??= ResourceLoader.ReadText("amazon.js");
             await webView.ExecuteScriptAsync(likeOverlayJs);
 
@@ -90,46 +91,10 @@ namespace MiniPlayer
                 }
                 if ((element & CachedElementState.Found) != 0)
                 {
-                    float scale = Zoom;
-                    var properties = new
-                    {
-                        style = new
-                        {
-                            transform = $"scale({scale})",
-                            width = $"{100 / scale}%",
-                            transformOrigin = "0 100%",
-                            padding = "0px",
-                        },
-                    };
-                    string jsonString = JsonSerializer.Serialize(properties, options);
-
-                    await InjectionFunctions.SetProperty(webView, jsonString, @"#overlay", @":scope > div", @":scope > div:nth-child(3)");
-
-                    await _fix_padding();
-
+                    await AutoPlay();
                     return;
                 }
             }
-
-
-
-        }
-
-        private async Task _fix_padding()
-        {
-            string jsonString;
-            var properties2 = new
-            {
-                style = new
-                {
-                    padding = "0px",
-                },
-            };
-            jsonString = JsonSerializer.Serialize(properties2, options);
-            await InjectionFunctions.SetProperty(webView, jsonString, @"#overlay", @":scope > div", @":scope > div:nth-child(3)", @":scope > div:nth-child(2)", @":scope > div:nth-child(1)");
-
-
-            await AutoPlay();
         }
 
         private async Task AutoPlay()

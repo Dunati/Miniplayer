@@ -11,13 +11,18 @@ control playback; per-station code injects CSS/JS to crop each site down to its 
 
 ## Stack
 - .NET 9 (`net9.0-windows`), WinForms, `Microsoft.Web.WebView2`. Entry point: `Program.cs` → `MiniPlayer` form.
-- uBlock Origin is loaded as a browser extension from `exe/uBlock0.chromium` (not in the repo; lives next to the built exe).
+- uBlock Origin is loaded as a browser extension from `exe/data/uBlock0.chromium` (not in the repo; lives next to the built exe). The WebView2 user-data folder (login/cookies) is `exe/data/WebView2`; both sit under `exe/data/`.
 
 ## Build / Run
 - Build: `dotnet build MiniPlayer.sln` (from Git Bash, use `-p:` not `/p:` switches — Git Bash mangles `/p`).
-- Run/debug: F5 in VSCode (`.vscode/launch.json`), or run `bin/Debug/net9.0-windows/MiniPlayer.exe`.
-- Post-build (`copy_files.cmd`, wired in `MiniPlayer.csproj` PostBuild target) mirrors build output into `exe/`,
-  preserving `exe/uBlock0.chromium`. The DevTools window auto-opens when a debugger is attached.
+- Run/debug: F5 in VSCode (`.vscode/launch.json`) runs `bin/Debug/net9.0-windows/MiniPlayer.exe` with `cwd=exe`
+  (so data files and `data/` resolve from `exe/`). Debug stays normal multi-file in `bin/Debug`; its
+  PostBuild step only refreshes `exe/DefaultStations.json`. DevTools auto-opens when a debugger is attached.
+- Publish (the lean standalone in `exe/`): `dotnet publish MiniPlayer.csproj -c Release -r win-x64`. Produces a
+  framework-dependent single-file `MiniPlayer.exe` (all managed DLLs embedded; needs the .NET 9 desktop runtime).
+  The PostPublish target mirrors the publish output into `exe/` via `copy_files.cmd`, pruning old files but
+  preserving `exe/data/` (uBlock + the WebView2 login profile).
+- `injector.js` and `amazon.js` are embedded resources (read via `ResourceLoader.ReadText`), not loose files.
 
 ## Architecture
 - **`Miniplayer.cs`** — the form. Owns the WebView2, custom window chrome (drag/resize via
