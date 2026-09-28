@@ -16,6 +16,22 @@
                 "kind": "build",
                 "isDefault": true
             }
+        },
+        {
+            "label": "publish",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "publish",
+                "${workspaceFolder}/MiniPlayer.csproj",
+                "-c",
+                "Release",
+                "-r",
+                "win-x64",
+                "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary"
+            ],
+            "problemMatcher": "$msCompile"
         }
     ]
 }

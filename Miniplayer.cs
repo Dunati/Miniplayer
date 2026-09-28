@@ -206,19 +206,15 @@ namespace MiniPlayer
                 {
                 }
             }
-            if (File.Exists("DefaultStations.json"))
+            StationSettings defaults = JsonSerializer.Deserialize<StationSettings>(ResourceLoader.ReadText("DefaultStations.json"))!;
+
+            var existing = stationSettings.GetStationIndices().Keys.ToHashSet();
+
+            foreach ((string uri, int index) in defaults.GetStationIndices())
             {
-                StationSettings defaults = JsonSerializer.Deserialize<StationSettings>(File.ReadAllText("DefaultStations.json"))!;
-
-                var existing = stationSettings.GetStationIndices().Keys.ToHashSet();
-
-
-                foreach ((string uri, int index) in defaults.GetStationIndices())
+                if (!existing.Contains(uri))
                 {
-                    if (!existing.Contains(uri))
-                    {
-                        stationSettings.Add(defaults[index]);
-                    }
+                    stationSettings.Add(defaults[index]);
                 }
             }
         }

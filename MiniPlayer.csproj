@@ -65,16 +65,17 @@
 	  </Compile>
 	</ItemGroup>
 	<ItemGroup>
-	  <None Update="DefaultStations.json">
-	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	  </None>
 	  <None Remove="injector.js" />
 	  <None Remove="amazon.js" />
+	  <None Remove="DefaultStations.json" />
 	  <EmbeddedResource Include="injector.js">
 	    <LogicalName>injector.js</LogicalName>
 	  </EmbeddedResource>
 	  <EmbeddedResource Include="amazon.js">
 	    <LogicalName>amazon.js</LogicalName>
+	  </EmbeddedResource>
+	  <EmbeddedResource Include="DefaultStations.json">
+	    <LogicalName>DefaultStations.json</LogicalName>
 	  </EmbeddedResource>
 	  <None Update="Properties.settings">
 	    <Generator>SettingsSingleFileGenerator</Generator>
@@ -85,9 +86,6 @@
 	    <LastGenOutput>Settings.Designer.cs</LastGenOutput>
 	  </None>
 	</ItemGroup>
-	<Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(Configuration)' == 'Debug'">
-	  <Copy SourceFiles="$(ProjectDir)DefaultStations.json" DestinationFolder="$(ProjectDir)exe" SkipUnchangedFiles="true" />
-	</Target>
 	<Target Name="PostPublish" AfterTargets="Publish">
 	  <Exec Command="&quot;$(ProjectDir)copy_files.cmd&quot;  &quot;$(PublishDir)&quot;  &quot;$(ProjectDir)exe&quot;" WorkingDirectory="$(ProjectDir)" />
 	</Target>
