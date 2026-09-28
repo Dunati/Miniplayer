@@ -19,44 +19,33 @@ namespace MiniPlayer
         {
             Color = Color.FromArgb(25, 25, 25);
         }
+        private const string contextMenu = @"[data-testid*=""MiniPlayer_ContextMenu""]";
+        private const string dislikeItem = @"[data-testid=""OverflowMenu_Option_Dislike""] [role=menuitem]";
+        private const string likeButton = @"[data-testid*=""MiniPlayer_Follow""]";
+        private const string playButton = @"[data-testid$=""MiniPlayer_Play""]";
+        private const string pauseButton = @"[data-testid$=""MiniPlayer_Pause""]";
+
         public override async void Dislike()
         {
-            const string selector = @"[aria-label=""Context Menu""]";
-            var element = await InjectionFunctions.FindElement(webView, selector);
-            if ((element & CachedElementState.Found) != 0)
+            if (!await FindElement(contextMenu))
             {
-                await InjectionFunctions.ClickElementAsync(webView, selector);
-                await Task.Delay(200);
-                element = await _dislike();
+                return;
             }
-        }
-
-        private async Task<CachedElementState> _dislike()
-        {
-            const string selector = @"[primary-text=""Dislike""]";
-            CachedElementState element = await InjectionFunctions.FindElement(webView, selector);
-            await InjectionFunctions.ClickElementAsync(webView, selector);
-            return element;
+            await ClickElement(contextMenu);
+            for (int i = 0; i < 10; i++)
+            {
+                await Task.Delay(100);
+                if (await FindElement(dislikeItem))
+                {
+                    await ClickElement(dislikeItem);
+                    return;
+                }
+            }
         }
 
         public override async void Like()
         {
-            var element = await InjectionFunctions.FindElement(webView, "#overlay", @"[aria-label=""Unlike""]");
-            if ((element & CachedElementState.Found) != 0)
-            {
-                await InjectionFunctions.ClickElementAsync(webView, "#overlay", @"[aria-label=""Unlike""]");
-                return;
-            }
-            await _like();
-        }
-
-        private async Task _like()
-        {
-            CachedElementState element = await InjectionFunctions.FindElement(webView, "#overlay", @"[aria-label=""Like""]");
-            if ((element & CachedElementState.Found) != 0)
-            {
-                await InjectionFunctions.ClickElementAsync(webView, "#overlay", @"[aria-label=""Like""]");
-            }
+            await ClickElement(likeButton);
         }
 
         public override async void Next()
@@ -84,23 +73,16 @@ namespace MiniPlayer
             for (int i = 0; i < 10; i++)
             {
                 await Task.Delay(500);
-                var element = await InjectionFunctions.FindElement(webView, @"#overlay", @":scope > div", @":scope > div:nth-child(3)", @"[aria-label=play]");
-                if ((element & CachedElementState.Found) == 0)
+                if (await FindElement(pauseButton))
                 {
-                    element = await InjectionFunctions.FindElement(webView, @"#overlay", @":scope > div", @":scope > div:nth-child(3)", @"[aria-label=Pause]");
+                    return;
                 }
-                if ((element & CachedElementState.Found) != 0)
+                if (await FindElement(playButton))
                 {
-                    await AutoPlay();
+                    await ClickElement(playButton);
                     return;
                 }
             }
-        }
-
-        private async Task AutoPlay()
-        {
-            await InjectionFunctions.ClickElementAsync(webView, @"[aria-label=play]");
-
         }
     }
 }
